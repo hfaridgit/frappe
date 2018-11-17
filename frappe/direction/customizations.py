@@ -40,7 +40,11 @@ def approve_multiple(names, doctype, status):
 
 @frappe.whitelist()
 def update_print_counter(doctype, name):
-	pc = frappe.get_doc(doctype,name).print_counter
-	if pc != None and pc == 0:
-		frappe.db.set_value(doctype, name, "print_counter", 1)
+	from watchdog.utils import has_attribute
+	pc = None
+	dc = frappe.get_doc(doctype,name)
+	if has_attribute(dc, 'print_counter'):
+		pc = dc.print_counter
+		if pc != None and pc == 0:
+			frappe.db.set_value(doctype, name, "print_counter", 1)
 		

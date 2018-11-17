@@ -37,6 +37,47 @@ def make_stock_entry_from_purchase_receipt(source_name, target_doc=None):
 	return doclist
 
 @frappe.whitelist()
+def make_stock_entry_from_quality_inspection(source_name, target_doc=None):
+	def set_missing_values(source, target):
+		from_warehouse = None
+
+		if source.reference_type == 'Sales Invoice':
+			from_warehouse = 'B2B تحت الفحص مرتجعات - M'
+		elif source.reference_type == 'Purchase Receipt':
+			from_warehouse = 'تحت الفحص مواد خام - B2B - M'
+		elif not source.reference_type:
+			from_warehouse = 'تحت الفحص منتج تام - B2B - M'
+
+		target.purpose = 'Material Transfer'
+		target.posting_date = nowdate()
+		target.from_warehouse = from_warehouse
+
+		item = frappe.new_doc('Stock Entry Detail')
+		item.s_warehouse = from_warehouse
+		item.item_code = source.item_code
+		item.item_name = source.item_name
+		item.description = source.description
+		item.qty = source.accepted_quantity
+		item.batch_no = source.batch_no
+		item.uom = source.uom
+		target.set('items', [item])
+
+	doclist = get_mapped_doc(
+		'Quality Inspection',
+		source_name,
+		{
+			'Quality Inspection': {
+				'doctype': 'Stock Entry',
+				'validation': { 'docstatus': ['=', 1] }
+			}
+		},
+		target_doc,
+		set_missing_values
+	)
+
+	return doclist
+
+@frappe.whitelist()
 def make_technical_returned_from_complains_form(source_name, target_doc=None):
 	def set_missing_values(source, target):
 		pass
@@ -69,7 +110,7 @@ def get_percentage_completed_of_sales_order():
 	)
 
 	if total and completed:
-		return flt(completed[0].count * 100.0 / total[0].count, 2)
+		return flt(completed[0].count * 100.0 / (total[0].count or 1), 2)
 
 @frappe.whitelist()
 def get_last_selling_rate(item_code):
@@ -188,10 +229,6 @@ def check_overdue_sales_invoice(doc, method):
 				frappe.throw(message)
 
 			frappe.msgprint(message)
-
-def before_submit_sales_order(doc, method):
-	if doc.has_overdue_invoice:
-		frappe.throw(_('You can not submit this sales order'))
 
 def on_submit_stock_entry(doc, method):
 	if doc.production_order:

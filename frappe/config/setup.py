@@ -62,7 +62,15 @@ def get_data():
 					"icon": "fa fa-share",
 					"name": "Document Share Report",
 					"description": _("Report of all document shares")
-				}
+				},
+				{
+					"type": "report",
+					"is_query_report": True,
+					"doctype": "User Permission",
+					"icon": "fa fa-eye-open",
+					"name": "User Permissions Tool",
+					"description": _("Tool to change users permissions for documents easily")
+				},
 			]
 		},
 		{

@@ -49,6 +49,18 @@ def get_data():
 					"name": "activity",
 					"description": _("Activity log of all users."),
 				},
+				{
+					"type": "doctype",
+					"name": "Procedure",
+					"label": _("Procedure"),
+					"description": _("Procedure"),
+				},
+				{
+					"type": "doctype",
+					"name": "Products documents",
+					"label": _("Products Documents"),
+					"description": _("Products Documents."),
+				},
 			]
 		},
 		{
